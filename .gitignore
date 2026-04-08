@@ -14,13 +14,14 @@ __pycache__/
 # ================================
 # 导航地图
 *.pgm
-*.yaml
+#*.yaml
 
 # 定位地图
 *.ply
 *.pcd
 *.pbstream
 
+cmake-build-debug/
 cmake-build-release/
 doc/
 

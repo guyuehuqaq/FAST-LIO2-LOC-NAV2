@@ -19,6 +19,9 @@
 #include "pcl/io/pcd_io.h"
 #include "pcl_conversions/pcl_conversions.h"
 
+#include "opencv2/opencv.hpp"
+#include <vector>
+
 namespace pcd2pgm
 {
 Pcd2PgmNode::Pcd2PgmNode(const rclcpp::NodeOptions & options) : Node("pcd2pgm", options)
@@ -157,6 +160,7 @@ void Pcd2PgmNode::setMapTopicMsg(
   msg.info.height = std::ceil((y_max - y_min) / map_resolution_);
   msg.data.assign(msg.info.width * msg.info.height, 0);
 
+  //// 原来
   for (const auto & point : cloud->points) {
     int i = std::floor((point.x - x_min) / map_resolution_);
     int j = std::floor((point.y - y_min) / map_resolution_);
@@ -165,6 +169,36 @@ void Pcd2PgmNode::setMapTopicMsg(
       msg.data[i + j * msg.info.width] = 100;
     }
   }
+
+  // // 4. 创建OpenCV图像（二值图）
+  // cv::Mat map_img(msg.info.height, msg.info.width, CV_8UC1, cv::Scalar(0));
+  //
+  // // 5. 点云投影到图像
+  // for (const auto & point : cloud->points) {
+  //   int i = std::floor((point.x - x_min) / map_resolution_);
+  //   int j = std::floor((point.y - y_min) / map_resolution_);
+  //
+  //   if (i >= 0 && i < msg.info.width && j >= 0 && j < msg.info.height) {
+  //     map_img.at<uint8_t>(j, i) = 255;  // 白色=障碍物
+  //   }
+  // }
+  //
+  // // 形态学闭运算
+  // int kernel_size = 2;  // 根据需求调整：1=轻微，2=标准，3=强填补
+  // cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(kernel_size, kernel_size));
+  // cv::morphologyEx(map_img, map_img, cv::MORPH_CLOSE, kernel);
+  // // =================================================================
+  //
+  // // 6. 把处理好的图像转回OccupancyGrid
+  // for (int j = 0; j < msg.info.height; j++) {
+  //   for (int i = 0; i < msg.info.width; i++) {
+  //     if (map_img.at<uint8_t>(j, i) == 255) {
+  //       msg.data[i + j * msg.info.width] = 100;  // 障碍物
+  //     } else {
+  //       msg.data[i + j * msg.info.width] = 0;    // 空闲
+  //     }
+  //   }
+  // }
 
   RCLCPP_INFO(get_logger(), "Map data size: %lu", msg.data.size());
 }
